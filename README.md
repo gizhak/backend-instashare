@@ -18,12 +18,12 @@ npm start       # Production mode
 ## 📡 API Endpoints
 
 ### Cars API
-- `GET /api/car` - Get all cars with optional filtering
-- `GET /api/car/:id` - Get car by ID
-- `POST /api/car` - Create new car
-- `PUT /api/car/:id` - Update car
-- `DELETE /api/car/:id` - Delete car
-- `POST /api/car/:id/msg` - Add message to car
+- `GET /api/post` - Get all posts with optional filtering
+- `GET /api/post/:id` - Get post by ID
+- `POST /api/post` - Create new post
+- `PUT /api/post/:id` - Update post
+- `DELETE /api/post/:id` - Delete post
+- `POST /api/post/:id/comment` - Add comment to post
 
 ### Users API
 - `POST /api/auth/signup` - Register new user
@@ -31,11 +31,6 @@ npm start       # Production mode
 - `POST /api/auth/logout` - Logout user
 - `GET /api/user` - Get all users
 - `GET /api/user/:id` - Get user by ID
-
-### Reviews API
-- `GET /api/review` - Get all reviews
-- `POST /api/review` - Create new review
-- `DELETE /api/review/:id` - Delete review
 
 ## 🏗️ Project Structure
 
