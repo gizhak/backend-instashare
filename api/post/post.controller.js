@@ -11,7 +11,7 @@ export async function getPosts(req, res) {
 		//     sortDir: req.query.sortDir || 1,
 		//     pageIdx: req.query.pageIdx,
 
-		const posts = await carService.query();
+		const posts = await postService.query();
 		res.json(posts);
 	} catch (err) {
 		logger.error('Failed to get posts', err);
