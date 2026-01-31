@@ -1,4 +1,5 @@
-import { postService } from './post.service';
+import { postService } from './post.service.js';
+import { logger } from '../../services/logger.service.js';
 
 // removePostComment,
 
@@ -37,7 +38,7 @@ export async function addPost(req, res) {
 		tags: body.tags,
 		likedBy: body.likedBy,
 		imgUrl: body.imgUrl,
-		createdAt: body.createdAt, // here meybe should be implemented when
+		createdAt: new Date(),
 		comments: body.comments,
 		by: loggedinUser,
 	};
@@ -87,7 +88,7 @@ export async function addPostComment(req, res) {
 	try {
 		const postId = req.params.id;
 		const comment = {
-			date: req.body.date,
+			date: new Date(),
 			likedBy: req.body.likedBy,
 			txt: req.body.txt,
 			by: loggedinUser,

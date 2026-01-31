@@ -23,7 +23,7 @@ async function query(filterBy = { txt: '' }) {
 		const collection = await dbService.getCollection('post');
 		// var postCursor = await collection.find(criteria, { sort })
 
-		const posts = collection.toArray();
+		const posts = collection.find().toArray();
 		return posts;
 	} catch (err) {
 		logger.error('cannot find posts', err);
