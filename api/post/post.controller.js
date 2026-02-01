@@ -33,6 +33,10 @@ export async function getPostById(req, res) {
 
 export async function addPost(req, res) {
 	const { loggedinUser, body } = req;
+
+	// Use the 'by' from client if provided (includes imgUrl), otherwise use loggedinUser
+	const by = body.by && body.by.imgUrl ? body.by : loggedinUser;
+
 	const post = {
 		txt: body.txt,
 		tags: body.tags,
@@ -40,11 +44,10 @@ export async function addPost(req, res) {
 		imgUrl: body.imgUrl,
 		createdAt: new Date(),
 		comments: body.comments,
-		by: loggedinUser,
+		by: by,
 	};
 	try {
-		post.by = loggedinUser;
-		const addedPost = await postService.add(post);
+		const addedPost = await postService.addPost(post);
 		res.json(addedPost);
 	} catch (err) {
 		logger.error('Failed to add post', err);
@@ -62,7 +65,7 @@ export async function updatePost(req, res) {
 	// }
 
 	try {
-		const updatedPost = await postService.update(post);
+		const updatedPost = await postService.updatePost(post);
 		res.json(updatedPost);
 	} catch (err) {
 		logger.error('Failed to update post', err);
@@ -73,7 +76,7 @@ export async function updatePost(req, res) {
 export async function removePost(req, res) {
 	try {
 		const postId = req.params.id;
-		const removedId = await postService.remove(postId);
+		const removedId = await postService.removePost(postId);
 
 		res.send(removedId);
 	} catch (err) {
