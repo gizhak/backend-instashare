@@ -76,6 +76,19 @@ export async function updatePost(req, res) {
 export async function removePost(req, res) {
 	try {
 		const postId = req.params.id;
+		const { loggedinUser } = req;
+
+		// Get the post to check ownership
+		const post = await postService.getById(postId);
+		if (!post) {
+			return res.status(404).send({ err: 'Post not found' });
+		}
+
+		// Authorization check: Only the post owner can delete it
+		if (post.by._id !== loggedinUser._id && !loggedinUser.isAdmin) {
+			return res.status(403).send({ err: 'Unauthorized: You can only delete your own posts' });
+		}
+
 		const removedId = await postService.removePost(postId);
 
 		res.send(removedId);
@@ -107,6 +120,24 @@ export async function addPostComment(req, res) {
 export async function removePostComment(req, res) {
 	try {
 		const { id: postId, commentId } = req.params;
+		const { loggedinUser } = req;
+
+		// Get the post to check comment ownership
+		const post = await postService.getById(postId);
+		if (!post) {
+			return res.status(404).send({ err: 'Post not found' });
+		}
+
+		// Find the comment
+		const comment = post.comments?.find(c => c.id === commentId);
+		if (!comment) {
+			return res.status(404).send({ err: 'Comment not found' });
+		}
+
+		// Authorization check: Only the comment owner can delete it
+		if (comment.by._id !== loggedinUser._id && !loggedinUser.isAdmin) {
+			return res.status(403).send({ err: 'Unauthorized: You can only delete your own comments' });
+		}
 
 		const removedId = await postService.removePostComment(postId, commentId);
 		res.send(removedId);
