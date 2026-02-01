@@ -89,7 +89,7 @@ export async function addPostComment(req, res) {
 		const postId = req.params.id;
 		const comment = {
 			date: new Date(),
-			likedBy: req.body.likedBy,
+			likedBy: req.body.likedBy || [],
 			txt: req.body.txt,
 			by: loggedinUser,
 		};
@@ -110,5 +110,29 @@ export async function removePostComment(req, res) {
 	} catch (err) {
 		logger.error('Failed to remove post comment', err);
 		res.status(400).send({ err: 'Failed to remove post comment' });
+	}
+}
+
+export async function togglePostLike(req, res) {
+	const { loggedinUser } = req;
+	try {
+		const postId = req.params.id;
+		const updatedPost = await postService.togglePostLike(postId, loggedinUser._id);
+		res.json(updatedPost);
+	} catch (err) {
+		logger.error('Failed to toggle post like', err);
+		res.status(400).send({ err: 'Failed to toggle post like' });
+	}
+}
+
+export async function toggleCommentLike(req, res) {
+	const { loggedinUser } = req;
+	try {
+		const { id: postId, commentId } = req.params;
+		const updatedPost = await postService.toggleCommentLike(postId, commentId, loggedinUser._id);
+		res.json(updatedPost);
+	} catch (err) {
+		logger.error('Failed to toggle comment like', err);
+		res.status(400).send({ err: 'Failed to toggle comment like' });
 	}
 }

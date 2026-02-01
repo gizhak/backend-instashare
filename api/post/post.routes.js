@@ -11,6 +11,8 @@ import {
 	removePost,
 	addPostComment,
 	removePostComment,
+	togglePostLike,
+	toggleCommentLike,
 } from './post.controller.js';
 
 const router = express.Router();
@@ -27,5 +29,7 @@ router.delete('/:id', requireAuth, removePost);
 
 router.post('/:id/comment', requireAuth, addPostComment);
 router.delete('/:id/comment/:commentId', requireAuth, removePostComment);
+router.post('/:id/like', requireAuth, togglePostLike);
+router.put('/:id/comment/:commentId/like', requireAuth, toggleCommentLike);
 
 export const postRoutes = router;
