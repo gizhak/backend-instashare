@@ -1,5 +1,5 @@
-import {logger} from './logger.service.js'
-import {Server} from 'socket.io'
+import { logger } from './logger.service.js'
+import { Server } from 'socket.io'
 import { messageService } from '../api/message/message.service.js'
 
 var gIo = null
@@ -61,7 +61,7 @@ export function setupSocketAPI(http) {
         })
         socket.on('chat-delete-msg', async ({ messageId, toUserId }) => {
             logger.info(`Delete message request: ${messageId}, notify user: ${toUserId}`)
-            
+
             // Notify the other user in the conversation
             if (toUserId) {
                 const recipientSocket = await _getUserSocket(toUserId)
@@ -99,7 +99,7 @@ async function emitToUser({ type, data, userId }) {
     if (socket) {
         logger.info(`Emiting event: ${type} to user: ${userId} socket [id: ${socket.id}]`)
         socket.emit(type, data)
-    }else {
+    } else {
         logger.info(`No active socket for user: ${userId}`)
         // _printSockets()
     }
@@ -109,7 +109,7 @@ async function emitToUser({ type, data, userId }) {
 // Optionally, broadcast to a room / to all
 async function broadcast({ type, data, room = null, userId }) {
     userId = userId.toString()
-    
+
     logger.info(`Broadcasting event: ${type}`)
     const excludedSocket = await _getUserSocket(userId)
     if (room && excludedSocket) {
@@ -151,9 +151,9 @@ export const socketService = {
     // set up the sockets service and define the API
     setupSocketAPI,
     // emit to everyone / everyone in a specific room (label)
-    emitTo, 
+    emitTo,
     // emit to a specific user (if currently active in system)
-    emitToUser, 
+    emitToUser,
     // Send to all sockets BUT not the current socket - if found
     // (otherwise broadcast to a room / to all)
     broadcast,

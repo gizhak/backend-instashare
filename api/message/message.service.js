@@ -72,7 +72,7 @@ async function addMessage(message) {
 			txt: message.txt,
 			createdAt: new Date(),
 		};
-		
+
 		await collection.insertOne(messageToAdd);
 		return messageToAdd;
 	} catch (err) {
