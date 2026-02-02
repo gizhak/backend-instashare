@@ -72,6 +72,7 @@ async function addMessage(message) {
 			txt: message.txt,
 			createdAt: new Date(),
 		};
+		
 		await collection.insertOne(messageToAdd);
 		return messageToAdd;
 	} catch (err) {
@@ -84,6 +85,7 @@ async function getConversations(userId) {
 	try {
 		const collection = await dbService.getCollection('message');
 		const usersCollection = await dbService.getCollection('user');
+		const { ObjectId } = await import('mongodb');
 
 		// Ensure userId is a string for comparison
 		const userIdStr = userId.toString();
@@ -105,39 +107,38 @@ async function getConversations(userId) {
 			// Determine the other user in this conversation
 			const isFromMe = fromUserIdStr === userIdStr;
 			const otherUserId = isFromMe ? toUserIdStr : fromUserIdStr;
-			const otherFullname = isFromMe ? msg.toFullname : msg.fromFullname;
-			const otherImgUrl = isFromMe ? msg.toImgUrl : msg.fromImgUrl;
 
 			if (otherUserId && otherUserId !== userIdStr && !conversationsMap.has(otherUserId)) {
-				conversationsMap.set(otherUserId, {
-					otherUserId,
-					otherFullname,
-					imgUrl: otherImgUrl || '',
-					lastMessage: msg.txt,
-					lastMessageAt: msg.createdAt,
-				});
-			}
-		}
-
-		// Fetch user images for conversations that don't have them
-		const conversations = Array.from(conversationsMap.values());
-		for (const convo of conversations) {
-			// If we don't have imgUrl from messages, try to fetch from users collection
-			if (!convo.imgUrl) {
+				// Always fetch fresh user data from DB
 				try {
-					const { ObjectId } = await import('mongodb');
-					const user = await usersCollection.findOne({ _id: ObjectId.createFromHexString(convo.otherUserId) });
+					const user = await usersCollection.findOne({ _id: ObjectId.createFromHexString(otherUserId) });
 					if (user) {
-						convo.imgUrl = user.imgUrl;
-						convo.username = user.username;
-						convo.otherFullname = user.fullname || convo.otherFullname;
+						conversationsMap.set(otherUserId, {
+							otherUserId,
+							otherFullname: user.fullname,
+							imgUrl: user.imgUrl || '',
+							username: user.username,
+							lastMessage: msg.txt,
+							lastMessageAt: msg.createdAt,
+						});
 					}
 				} catch (err) {
-					logger.warn(`Could not fetch user data for ${convo.otherUserId}`, err);
+					logger.warn(`Could not fetch user data for ${otherUserId}`, err);
+					// Fallback to message data if user fetch fails
+					const otherFullname = isFromMe ? msg.toFullname : msg.fromFullname;
+					const otherImgUrl = isFromMe ? msg.toImgUrl : msg.fromImgUrl;
+					conversationsMap.set(otherUserId, {
+						otherUserId,
+						otherFullname,
+						imgUrl: otherImgUrl || '',
+						lastMessage: msg.txt,
+						lastMessageAt: msg.createdAt,
+					});
 				}
 			}
 		}
 
+		const conversations = Array.from(conversationsMap.values());
 		return conversations;
 	} catch (err) {
 		logger.error('cannot get conversations', err);

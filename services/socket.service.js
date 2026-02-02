@@ -59,6 +59,18 @@ export function setupSocketAPI(http) {
                 socket.emit('chat-add-msg', msg) // Still send the message even if DB save fails
             }
         })
+        socket.on('chat-delete-msg', async ({ messageId, toUserId }) => {
+            logger.info(`Delete message request: ${messageId}, notify user: ${toUserId}`)
+            
+            // Notify the other user in the conversation
+            if (toUserId) {
+                const recipientSocket = await _getUserSocket(toUserId)
+                if (recipientSocket) {
+                    logger.info(`Notifying ${toUserId} about deleted message ${messageId}`)
+                    recipientSocket.emit('chat-msg-deleted', { messageId })
+                }
+            }
+        })
         socket.on('user-watch', userId => {
             logger.info(`user-watch from socket [id: ${socket.id}], on user ${userId}`)
             socket.join('watching:' + userId)
