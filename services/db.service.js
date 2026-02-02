@@ -22,7 +22,11 @@ async function _connect() {
 	if (dbConn) return dbConn;
 
 	try {
-		const client = await MongoClient.connect(config.dbURL);
+		const options = {
+			tlsAllowInvalidCertificates: true,
+			serverSelectionTimeoutMS: 5000,
+		};
+		const client = await MongoClient.connect(config.dbURL, options);
 		return (dbConn = client.db(config.dbName));
 	} catch (err) {
 		logger.error('Cannot Connect to DB', err);

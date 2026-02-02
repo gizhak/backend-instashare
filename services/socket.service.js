@@ -1,5 +1,6 @@
 import {logger} from './logger.service.js'
 import {Server} from 'socket.io'
+import { messageService } from '../api/message/message.service.js'
 
 var gIo = null
 
@@ -23,12 +24,40 @@ export function setupSocketAPI(http) {
             socket.join(topic)
             socket.myTopic = topic
         })
-        socket.on('chat-send-msg', msg => {
-            logger.info(`New chat msg from socket [id: ${socket.id}], emitting to topic ${socket.myTopic}`)
-            // emits to all sockets:
-            // gIo.emit('chat addMsg', msg)
-            // emits only to sockets in the same room
-            gIo.to(socket.myTopic).emit('chat-add-msg', msg)
+        socket.on('chat-send-msg', async msg => {
+            // Use fromUserId from message (more reliable than socket.userId)
+            const senderId = msg.fromUserId || socket.userId
+            logger.info(`New chat msg from ${senderId} to ${msg.to}`)
+
+            try {
+                // Save message to DB
+                const savedMessage = await messageService.addMessage({
+                    fromUserId: senderId,
+                    fromFullname: msg.from,
+                    fromImgUrl: msg.fromImgUrl || '',
+                    toUserId: msg.to,
+                    toFullname: msg.toFullname || '',
+                    toImgUrl: msg.toImgUrl || '',
+                    txt: msg.txt,
+                })
+
+                // Send to the recipient
+                if (msg.to) {
+                    const recipientSocket = await _getUserSocket(msg.to)
+                    if (recipientSocket) {
+                        logger.info(`Found recipient socket, sending message to ${msg.to}`)
+                        recipientSocket.emit('chat-add-msg', savedMessage)
+                    } else {
+                        logger.info(`No socket found for recipient ${msg.to}`)
+                        await _printSockets()
+                    }
+                }
+                // Also send back to sender so they see their own message
+                socket.emit('chat-add-msg', savedMessage)
+            } catch (err) {
+                logger.error('Failed to save message', err)
+                socket.emit('chat-add-msg', msg) // Still send the message even if DB save fails
+            }
         })
         socket.on('user-watch', userId => {
             logger.info(`user-watch from socket [id: ${socket.id}], on user ${userId}`)

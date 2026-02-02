@@ -9,6 +9,7 @@ dotenv.config();
 import { authRoutes } from './api/auth/auth.routes.js';
 import { userRoutes } from './api/user/user.routes.js';
 import { postRoutes } from './api/post/post.routes.js';
+import { messageRoutes } from './api/message/message.routes.js';
 import { setupSocketAPI } from './services/socket.service.js';
 
 import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js';
@@ -40,6 +41,7 @@ app.all('*all', setupAsyncLocalStorage);
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/message', messageRoutes);
 
 setupSocketAPI(server);
 
