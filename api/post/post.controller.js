@@ -86,7 +86,9 @@ export async function removePost(req, res) {
 
 		// Authorization check: Only the post owner can delete it
 		if (post.by._id !== loggedinUser._id && !loggedinUser.isAdmin) {
-			return res.status(403).send({ err: 'Unauthorized: You can only delete your own posts' });
+			return res
+				.status(403)
+				.send({ err: 'Unauthorized: You can only delete your own posts' });
 		}
 
 		const removedId = await postService.removePost(postId);
@@ -104,11 +106,12 @@ export async function addPostComment(req, res) {
 	try {
 		const postId = req.params.id;
 		const comment = {
-			date: new Date(),
+			createdAt: new Date(),
 			likedBy: req.body.likedBy || [],
 			txt: req.body.txt,
 			by: loggedinUser,
 		};
+		console.log(comment);
 		const savedComment = await postService.addPostComment(postId, comment);
 		res.json(savedComment);
 	} catch (err) {
@@ -129,14 +132,16 @@ export async function removePostComment(req, res) {
 		}
 
 		// Find the comment
-		const comment = post.comments?.find(c => c.id === commentId);
+		const comment = post.comments?.find((c) => c.id === commentId);
 		if (!comment) {
 			return res.status(404).send({ err: 'Comment not found' });
 		}
 
 		// Authorization check: Only the comment owner can delete it
 		if (comment.by._id !== loggedinUser._id && !loggedinUser.isAdmin) {
-			return res.status(403).send({ err: 'Unauthorized: You can only delete your own comments' });
+			return res
+				.status(403)
+				.send({ err: 'Unauthorized: You can only delete your own comments' });
 		}
 
 		const removedId = await postService.removePostComment(postId, commentId);
@@ -151,7 +156,10 @@ export async function togglePostLike(req, res) {
 	const { loggedinUser } = req;
 	try {
 		const postId = req.params.id;
-		const updatedPost = await postService.togglePostLike(postId, loggedinUser._id);
+		const updatedPost = await postService.togglePostLike(
+			postId,
+			loggedinUser._id,
+		);
 		res.json(updatedPost);
 	} catch (err) {
 		logger.error('Failed to toggle post like', err);
@@ -163,7 +171,11 @@ export async function toggleCommentLike(req, res) {
 	const { loggedinUser } = req;
 	try {
 		const { id: postId, commentId } = req.params;
-		const updatedPost = await postService.toggleCommentLike(postId, commentId, loggedinUser._id);
+		const updatedPost = await postService.toggleCommentLike(
+			postId,
+			commentId,
+			loggedinUser._id,
+		);
 		res.json(updatedPost);
 	} catch (err) {
 		logger.error('Failed to toggle comment like', err);
