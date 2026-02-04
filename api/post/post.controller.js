@@ -1,5 +1,6 @@
 import { postService } from './post.service.js';
 import { logger } from '../../services/logger.service.js';
+import { socketService } from '../../services/socket.service.js';
 
 // removePostComment,
 
@@ -152,6 +153,7 @@ export async function removePostComment(req, res) {
 	}
 }
 
+// for like counter
 export async function togglePostLike(req, res) {
 	const { loggedinUser } = req;
 	try {
@@ -159,7 +161,12 @@ export async function togglePostLike(req, res) {
 		const updatedPost = await postService.togglePostLike(
 			postId,
 			loggedinUser._id,
-		);
+		)
+		socketService.emitTo({
+			type: 'post-liked-updated',
+			data: updatedPost,
+			room: null, // Broadcast to all connected clients
+		});
 		res.json(updatedPost);
 	} catch (err) {
 		logger.error('Failed to toggle post like', err);
